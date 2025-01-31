@@ -1,4 +1,4 @@
-pipeline{
+pipeline {
     agent any
     tools {
         maven "MAVEN3"
@@ -19,23 +19,24 @@ pipeline{
 
     stages {
         stage ('Build') {
-            steps{
+            steps {
                 sh 'mvn -s settings.xml -DskipTests install'
             }
             post {
                 success {
                     echo "Now Archiving."
-                    archiveArtifacts arttifacts: '**/*.war'
+                    archiveArtifacts artifacts: '**/*.war'
                 }
             }
         }
+        
         stage ('Test') {
-            steps{
+            steps {
                 sh 'mvn test'
             }
         }
 
-        stage('Checkstyle Analysis'){
+        stage('Checkstyle Analysis') {
             steps {
                 sh 'mvn checkstyle:checkstyle'
             }

@@ -3,6 +3,7 @@ pipeline {
     tools {
         maven "MAVEN3"
         jdk "OracleJDK8"
+        sonarQubeScanner 'sonarscanner'  // Explicitly define SonarScanner
     }
 
     environment {
@@ -16,7 +17,6 @@ pipeline {
         NEXUS_GRP_REPO = 'vpro-maven-group'
         NEXUS_LOGIN = 'nexuslogin'
         SONARSERVER = 'sonarserver'
-        SONARSCANNER = 'sonarscanner'
     }
 
     stages {
@@ -26,7 +26,6 @@ pipeline {
             }
             post {
                 success {
-                    echo "Now Archiving."
                     archiveArtifacts artifacts: '**/*.war'
                 }
             }
@@ -45,21 +44,21 @@ pipeline {
         }
 
         stage('CODE ANALYSIS with SONARQUBE') {
-            environment {
-                scannerHome = tool "${SONNARSCANNER}"
-            }
             steps {
-                withSonarQubeEnv("${SONARSERVER}") {
-                    sh '''
-                    ${SONARSCANNER}/bin/sonar-scanner -Dsonar.projectKey=vprofile \
-                        -Dsonar.projectName=vprofile-repo \
-                        -Dsonar.projectVersion=1.0 \
-                        -Dsonar.sources=src/ \
-                        -Dsonar.java.binaries=target/test-classes/com/visualpathit/account/controllerTest/ \
-                        -Dsonar.junit.reportsPath=target/surefire-reports/ \
-                        -Dsonar.jacoco.reportsPath=target/jacoco.exec \
-                        -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml
-                    '''
+                script {
+                    def sonarScannerHome = tool name: 'sonarscanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+                    withSonarQubeEnv('sonarserver') {
+                        sh """
+                        ${sonarScannerHome}/bin/sonar-scanner -Dsonar.projectKey=vprofile \
+                            -Dsonar.projectName=vprofile-repo \
+                            -Dsonar.projectVersion=1.0 \
+                            -Dsonar.sources=src/ \
+                            -Dsonar.java.binaries=target/test-classes/com/visualpathit/account/controllerTest/ \
+                            -Dsonar.junit.reportsPath=target/surefire-reports/ \
+                            -Dsonar.jacoco.reportsPath=target/jacoco.exec \
+                            -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml
+                        """
+                    }
                 }
             }
         }

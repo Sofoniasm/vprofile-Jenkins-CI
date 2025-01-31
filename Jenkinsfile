@@ -3,7 +3,6 @@ pipeline {
     tools {
         maven "MAVEN3"
         jdk "OracleJDK8"
-        sonarQubeScanner 'sonarscanner'  // Explicitly define SonarScanner
     }
 
     environment {
